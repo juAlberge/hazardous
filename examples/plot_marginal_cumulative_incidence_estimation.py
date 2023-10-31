@@ -39,8 +39,8 @@ import matplotlib.pyplot as plt
 from hazardous import GradientBoostingIncidence
 from lifelines import AalenJohansenFitter
 
-rng = np.random.default_rng(0)
-n_samples = 3_000
+rng = np.random.default_rng(5)
+n_samples = 500_000
 
 # Non-informative covariate because scikit-learn estimators expect at least
 # one feature.
@@ -49,9 +49,9 @@ X_dummy = np.zeros(shape=(n_samples, 1), dtype=np.float32)
 base_scale = 1_000.0  # some arbitrary time unit
 
 distributions = [
-    {"event_id": 1, "scale": 10 * base_scale, "shape": 0.5},
-    {"event_id": 2, "scale": 3 * base_scale, "shape": 1},
-    {"event_id": 3, "scale": 3 * base_scale, "shape": 5},
+    {"event_id": 1, "scale": 20 * base_scale, "shape": 0.2},
+    {"event_id": 2, "scale": 0.8 * base_scale, "shape": 2},
+    {"event_id": 3, "scale": 1 * base_scale, "shape": 5},
 ]
 event_times = np.concatenate(
     [
@@ -138,7 +138,7 @@ def plot_cumulative_incidence_functions(distributions, y, gb_incidence=None, aj=
     # fine-grained time grid. Note that integration errors can accumulate quite
     # quickly if the time grid is resolution too coarse, especially for the
     # Weibull distribution with shape < 1.
-    fine_time_grid = np.linspace(0, t_max, num=1_000_000)
+    fine_time_grid = np.linspace(0, t_max, num=100_000_000)
     dt = np.diff(fine_time_grid)[0]
     all_hazards = np.stack(
         [weibull_hazard(fine_time_grid, **dist) for dist in distributions],
@@ -161,7 +161,7 @@ def plot_cumulative_incidence_functions(distributions, y, gb_incidence=None, aj=
             linestyle="dashed",
             label="Theoretical incidence",
         ),
-        ax.legend(loc="lower right")
+        ax.legend()
 
         if gb_incidence is not None:
             tic = perf_counter()
@@ -180,7 +180,7 @@ def plot_cumulative_incidence_functions(distributions, y, gb_incidence=None, aj=
                 cif_pred,
                 label="GradientBoostingIncidence",
             )
-            ax.legend(loc="lower right")
+            ax.legend()
             ax.set(title=f"Event {event_id}")
 
         if aj is not None:
@@ -256,3 +256,5 @@ plot_cumulative_incidence_functions(
 # particular large time horizons, where the CIFs are getting flatter. This
 # effect diminishes with larger training set sizes (lower epistemic
 # uncertainty).
+
+# %%
